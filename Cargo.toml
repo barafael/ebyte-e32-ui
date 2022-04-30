@@ -1,0 +1,9 @@
+[package]
+name = "ebyte-e32-cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+embedded-hal = "0.2.7"
+linux-embedded-hal = "0.3.2"
+nb = "1.0.0"
