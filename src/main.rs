@@ -3,15 +3,21 @@ use ebyte_e32::{
     Ebyte,
 };
 use embedded_hal::prelude::*;
-use linux_embedded_hal::{Delay, Pin, Serial};
+use linux_embedded_hal::Delay;
 use nb::block;
+use rppal::{
+    gpio::Gpio,
+    uart::{Parity, Uart},
+};
+use std::io::{self, Write};
 
 fn main() {
-    let serial = Serial::open("/dev/ttyAMA0").unwrap();
+    let serial = Uart::with_path("/dev/ttyAMA0", 9600, Parity::None, 8, 1).unwrap();
 
-    let aux = Pin::new(18);
-    let m0 = Pin::new(23);
-    let m1 = Pin::new(24);
+    let gpio = Gpio::new().unwrap();
+    let aux = gpio.get(18).unwrap().into_input();
+    let m0 = gpio.get(23).unwrap().into_output();
+    let m1 = gpio.get(24).unwrap().into_output();
 
     let mut ebyte = Ebyte::new(serial, aux, m0, m1, Delay).unwrap();
 
@@ -34,9 +40,10 @@ fn main() {
     loop {
         match block!(ebyte.read()) {
             Err(e) => println!("ebyte error: {e:?}"),
-            Ok(byte) => {
-                block!(ebyte.write(byte)).unwrap();
-                print!("{}", byte);
+            Ok(b) => {
+                block!(ebyte.write(b)).unwrap();
+                print!("{}", b as char);
+                io::stdout().flush().unwrap();
             }
         }
     }
