@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+ebyte-e32 = "0.3.0"
 embedded-hal = "0.2.7"
 linux-embedded-hal = "0.3.2"
 nb = "1.0.0"
