@@ -1,3 +1,5 @@
+use crate::cli::App;
+use clap::StructOpt;
 use ebyte_e32::{
     parameters::{air_baudrate::AirBaudRate, baudrate::BaudRate, Persistence},
     Ebyte,
@@ -11,7 +13,12 @@ use rppal::{
 };
 use std::io::{self, Write};
 
+mod cli;
+
 fn main() {
+    let args = App::parse();
+    dbg!(args);
+
     let serial = Uart::with_path("/dev/ttyAMA0", 9600, Parity::None, 8, 1).unwrap();
 
     let gpio = Gpio::new().unwrap();
