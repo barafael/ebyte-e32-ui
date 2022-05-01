@@ -1,7 +1,7 @@
 use crate::cli::App;
 use clap::StructOpt;
+use ebyte_e32::parameters::{air_baudrate::AirBaudRate, baudrate::BaudRate, Persistence};
 use ebyte_e32::Ebyte;
-use ebyte_e32_parameters::{air_baudrate::AirBaudRate, baudrate::BaudRate, Persistence};
 use embedded_hal::prelude::*;
 use linux_embedded_hal::Delay;
 use nb::block;

@@ -1,5 +1,5 @@
 use clap::Parser;
-use ebyte_e32_parameters::{
+use ebyte_e32::parameters::{
     air_baudrate::AirBaudRate,
     baudrate::BaudRate,
     option::{
@@ -47,7 +47,7 @@ pub struct App {
     transmission_power: TransmissionPower,
 }
 
-impl From<App> for ebyte_e32_parameters::Parameters {
+impl From<App> for ebyte_e32::parameters::Parameters {
     fn from(app: App) -> Self {
         Self {
             address: app.address,

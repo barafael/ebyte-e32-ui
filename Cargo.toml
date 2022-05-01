@@ -5,8 +5,7 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "3.1.13", features = ["derive"] }
-ebyte-e32 = { git = "https://github.com/barafael/ebyte-e32-rs" }
-ebyte-e32-parameters = { git = "https://github.com/barafael/ebyte-e32-parameters", features = [
+ebyte-e32 = { git = "https://github.com/barafael/ebyte-e32-rs", features = [
     "arg_enum",
 ] }
 embedded-hal = "0.2.7"
