@@ -56,6 +56,10 @@ pub struct App {
     /// Transmission Power.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
     pub transmission_power: TransmissionPower,
+
+    /// Use GUI?
+    #[clap(long, takes_value(false))]
+    pub gui: bool,
 }
 
 impl From<&App> for ebyte_e32::parameters::Parameters {

@@ -1,4 +1,5 @@
 use crate::cli::App;
+use clap::StructOpt;
 use ebyte_e32::{parameters::Parameters, Ebyte};
 use embedded_hal::prelude::*;
 use klask::Settings;
@@ -13,7 +14,12 @@ use std::io::{self, Write};
 mod cli;
 
 fn main() {
-    klask::run_derived::<App, _>(Settings::default(), process)
+    let args = App::parse();
+    if args.gui {
+        klask::run_derived::<App, _>(Settings::default(), process);
+    } else {
+        process(args);
+    }
 }
 
 fn process(args: App) {
