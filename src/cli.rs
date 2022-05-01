@@ -15,51 +15,51 @@ use ebyte_e32::parameters::{
 pub struct App {
     /// Module Address (16 Bit).
     #[clap(short, long, required = true)]
-    address: u16,
+    pub address: u16,
 
     /// Channel (8 Bit).
     #[clap(short, long, required = true)]
-    channel: u8,
+    pub channel: u8,
 
     /// Whether settings should be saved persistently on the module.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
-    persistence: Persistence,
+    pub persistence: Persistence,
 
     /// UART Parity.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
-    uart_parity: Parity,
+    pub uart_parity: Parity,
 
     /// UART Baudrate.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
-    uart_rate: BaudRate,
+    pub uart_rate: BaudRate,
 
     /// Air Baudrate.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
-    air_rate: AirBaudRate,
+    pub air_rate: AirBaudRate,
 
     /// Transmission Mode.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
-    transmission_mode: TransmissionMode,
+    pub transmission_mode: TransmissionMode,
 
     /// IO drive Mode for AUX pin.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
-    io_drive_mode: IoDriveMode,
+    pub io_drive_mode: IoDriveMode,
 
     /// Wireless Wakeup Time.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
-    wakeup_time: WakeupTime,
+    pub wakeup_time: WakeupTime,
 
     /// Forward Error Correction Mode.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
-    fec: ForwardErrorCorrectionMode,
+    pub fec: ForwardErrorCorrectionMode,
 
     /// Transmission Power.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
-    transmission_power: TransmissionPower,
+    pub transmission_power: TransmissionPower,
 }
 
-impl From<App> for ebyte_e32::parameters::Parameters {
-    fn from(app: App) -> Self {
+impl From<&App> for ebyte_e32::parameters::Parameters {
+    fn from(app: &App) -> Self {
         Self {
             address: app.address,
             channel: app.channel,
