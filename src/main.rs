@@ -1,8 +1,10 @@
 use crate::cli::App;
-use clap::StructOpt;
-use ebyte_e32::parameters::{air_baudrate::AirBaudRate, baudrate::BaudRate, Persistence};
-use ebyte_e32::Ebyte;
+use ebyte_e32::{
+    parameters::{air_baudrate::AirBaudRate, baudrate::BaudRate, Persistence},
+    Ebyte,
+};
 use embedded_hal::prelude::*;
+use klask::Settings;
 use linux_embedded_hal::Delay;
 use nb::block;
 use rppal::{
@@ -14,9 +16,11 @@ use std::io::{self, Write};
 mod cli;
 
 fn main() {
-    let args = App::parse();
-    dbg!(args);
+    klask::run_derived::<App, _>(Settings::default(), process)
+}
 
+fn process(args: App) {
+    println!("{:?}", args);
     let serial = Uart::with_path("/dev/ttyAMA0", 9600, Parity::None, 8, 1).unwrap();
 
     let gpio = Gpio::new().unwrap();

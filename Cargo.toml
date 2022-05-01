@@ -4,10 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-clap = { version = "3.1.13", features = ["derive"] }
+clap = { version = "3.1.14", features = ["derive"] }
 #ebyte-e32 = { git = "https://github.com/barafael/ebyte-e32-rs", features = ["arg_enum"] }
 ebyte-e32 = { version = "0.5.0", features = ["arg_enum"] }
 embedded-hal = "0.2.7"
+klask = { git = "https://github.com/barafael/klask.git" }
 linux-embedded-hal = "0.3.2"
 nb = "1.0.0"
 rppal = { version = "0.13.1", features = ["hal", "hal-unproven"] }

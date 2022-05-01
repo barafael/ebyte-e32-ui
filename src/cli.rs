@@ -13,36 +13,47 @@ use ebyte_e32::parameters::{
 #[derive(Clone, Debug, PartialEq, Eq, Parser)]
 #[clap(author, version, about, long_about = None)]
 pub struct App {
+    /// Module Address (16 Bit).
     #[clap(short, long, required = true)]
     address: u16,
 
+    /// Channel (8 Bit).
     #[clap(short, long, required = true)]
     channel: u8,
 
+    /// Whether settings should be saved persistently on the module.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
     persistence: Persistence,
 
+    /// UART Parity.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
     uart_parity: Parity,
 
+    /// UART Baudrate.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
     uart_rate: BaudRate,
 
+    /// Air Baudrate.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
     air_rate: AirBaudRate,
 
+    /// Transmission Mode.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
     transmission_mode: TransmissionMode,
 
+    /// IO drive Mode for AUX pin.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
     io_drive_mode: IoDriveMode,
 
+    /// Wireless Wakeup Time.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
     wakeup_time: WakeupTime,
 
+    /// Forward Error Correction Mode.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
     fec: ForwardErrorCorrectionMode,
 
+    /// Transmission Power.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
     transmission_power: TransmissionPower,
 }
