@@ -9,6 +9,7 @@ use rppal::{
     gpio::Gpio,
     uart::{Parity, Uart},
 };
+use rustyline::{error::ReadlineError, Editor};
 use std::io::{self, Write};
 
 mod cli;
@@ -40,7 +41,7 @@ fn process(args: App) {
     let params = ebyte.parameters().unwrap();
     println!("Parameters before: {params:#?}");
 
-    let (args, _listen) = match args.mode {
+    let (args, listen) = match args.mode {
         cli::Mode::Listen(p) => (p, true),
         cli::Mode::Send(p) => (p, false),
     };
@@ -52,13 +53,40 @@ fn process(args: App) {
     let params = ebyte.parameters().unwrap();
     println!("Parameters after customization: {params:#?}");
 
-    loop {
-        match block!(ebyte.read()) {
-            Err(e) => println!("ebyte error: {e:?}"),
-            Ok(b) => {
-                block!(ebyte.write(b)).unwrap();
-                print!("{}", b as char);
-                io::stdout().flush().unwrap();
+    if listen {
+        loop {
+            let b = block!(ebyte.read()).unwrap();
+            print!("{}", b as char);
+            io::stdout().flush().unwrap();
+        }
+    } else {
+        let mut prompt = Editor::<()>::new();
+        loop {
+            match prompt.readline("Enter message >> ") {
+                Ok(line) => {
+                    if line == "exit" || line == "quit" {
+                        break;
+                    }
+                    prompt.add_history_entry(&line);
+
+                    for b in line.as_bytes() {
+                        block!(ebyte.write(*b)).unwrap();
+                        print!("{}", *b as char);
+                        io::stdout().flush().unwrap();
+                    }
+                }
+                Err(ReadlineError::Interrupted) => {
+                    println!("CTRL-C");
+                    break;
+                }
+                Err(ReadlineError::Eof) => {
+                    println!("CTRL-D");
+                    break;
+                }
+                Err(err) => {
+                    println!("Error: {:?}", err);
+                    break;
+                }
             }
         }
     }
