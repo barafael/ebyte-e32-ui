@@ -11,8 +11,7 @@ use ebyte_e32::parameters::{
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, Parser)]
-#[clap(author, version, about, long_about = None)]
-pub struct App {
+pub struct Parameters {
     /// Module Address (16 Bit).
     #[clap(short, long, required = true)]
     pub address: u16,
@@ -56,25 +55,34 @@ pub struct App {
     /// Transmission Power.
     #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
     pub transmission_power: TransmissionPower,
-
-    /// Use GUI?
-    #[clap(long, takes_value(false))]
-    pub gui: bool,
 }
 
-impl From<&App> for ebyte_e32::parameters::Parameters {
-    fn from(app: &App) -> Self {
+#[derive(Clone, Debug, PartialEq, Eq, Parser)]
+#[clap(author, version, about, long_about = None)]
+pub struct App {
+    #[clap(subcommand)]
+    pub mode: Mode,
+}
+
+#[derive(clap::Subcommand, Clone, Debug, Eq, PartialEq)]
+pub enum Mode {
+    Listen(Parameters),
+    Send(Parameters),
+}
+
+impl From<&Parameters> for ebyte_e32::parameters::Parameters {
+    fn from(params: &Parameters) -> Self {
         Self {
-            address: app.address,
-            channel: app.channel,
-            uart_parity: app.uart_parity,
-            uart_rate: app.uart_rate,
-            air_rate: app.air_rate,
-            transmission_mode: app.transmission_mode,
-            io_drive_mode: app.io_drive_mode,
-            wakeup_time: app.wakeup_time,
-            fec: app.fec,
-            transmission_power: app.transmission_power,
+            address: params.address,
+            channel: params.channel,
+            uart_parity: params.uart_parity,
+            uart_rate: params.uart_rate,
+            air_rate: params.air_rate,
+            transmission_mode: params.transmission_mode,
+            io_drive_mode: params.io_drive_mode,
+            wakeup_time: params.wakeup_time,
+            fec: params.fec,
+            transmission_power: params.transmission_power,
         }
     }
 }

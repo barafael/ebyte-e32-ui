@@ -14,11 +14,13 @@ use std::io::{self, Write};
 mod cli;
 
 fn main() {
-    let args = App::parse();
-    if args.gui {
-        klask::run_derived::<App, _>(Settings::default(), process);
-    } else {
-        process(args);
+    let args = App::try_parse();
+    match args {
+        Ok(app) => process(app),
+        Err(e) => {
+            eprintln!("{}", e);
+            klask::run_derived::<App, _>(Settings::default(), process);
+        }
     }
 }
 
@@ -37,6 +39,11 @@ fn process(args: App) {
 
     let params = ebyte.parameters().unwrap();
     println!("Parameters before: {params:#?}");
+
+    let (args, _listen) = match args.mode {
+        cli::Mode::Listen(p) => (p, true),
+        cli::Mode::Send(p) => (p, false),
+    };
 
     println!("Updating parameters (persistence: {:?})", args.persistence);
     ebyte
