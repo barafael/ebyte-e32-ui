@@ -2,6 +2,7 @@
 name = "ebyte-e32-ui"
 version = "0.1.0"
 edition = "2021"
+default-run = "ebyte-e32-gui"
 
 [[bin]]
 name = "ebyte-e32-cli"
