@@ -99,3 +99,7 @@ aur/arm-linux-gnueabihf-gcc75-linaro-bin
 ```
 cargo b --target armv7-unknown-linux-musleabihf
 ```
+
+# Simplified Dependency Graph
+
+![graph](https://user-images.githubusercontent.com/6966738/167207702-d781f5c7-ec73-4785-8b22-783575306463.png)
