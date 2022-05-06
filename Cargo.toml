@@ -1,5 +1,5 @@
 [package]
-name = "ebyte-e32-cli"
+name = "ebyte-e32-ui"
 version = "0.1.0"
 edition = "2021"
 

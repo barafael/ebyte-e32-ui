@@ -20,7 +20,9 @@ fn main() {
         Ok(app) => process(app),
         Err(e) => {
             eprintln!("{}", e);
-            klask::run_derived::<App, _>(Settings::default(), process);
+            let mut settings = Settings::default();
+            settings.enable_stdin = Some("Description".to_string());
+            klask::run_derived::<App, _>(settings, process);
         }
     }
 }
