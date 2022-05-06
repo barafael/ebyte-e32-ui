@@ -1,5 +1,26 @@
 # ebyte-e32-ui
-Ebyte E32 Command Line Interface + minimal GUI
+Ebyte E32 Command Line Interface + minimal GUI.
+
+Works with Ebyte-E32 LoRa modules. Uses (https://github.com/barafael/ebyte-e32-rs)[ebyte-e32-rs] as a driver, plus some traits from (https://github.com/rust-embedded/embedded-hal)[embedded-hal] and their implementations from (https://github.com/golemparts/rppal)[RPPAL].
+
+For the CLI, (https://github.com/clap-rs/clap)[clap] is used. For the GUI, on top of clap, (https://github.com/MichalGniadek/klask)[klask] is used.
+
+# Pinout
+
+| Ebyte Pin | Raspberry Pi Pin (BCM pin number) |
+|-----------|-----------------------------------|
+| VCC       | 3v3                               |
+| GND       | GND                               |
+| AUX       | 18                                |
+| M0        | 23                                |
+| M1        | 24                                |
+| TX        | 15 (RX)                           |
+| RX        | 14 (TX)                           |
+
+# Usage
+
+ * Run `cargo run --bin ebyte-e32-cli [OPTIONS] --address --channel` (options etc. see below) for the CLI. In `Send` mode, a REPL-like interface is provided.
+ * For the GUI, run `cargo run --bin ebyte-e32-gui`. In `Send` mode, the input provided in the `Input` tab is sent (there, you can also open a file but I never tested that :D).
 
 # Screenshots
 
