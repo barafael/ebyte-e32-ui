@@ -10,8 +10,19 @@ use ebyte_e32::parameters::{
     Persistence,
 };
 
+#[derive(clap::Subcommand, Clone, Debug, Eq, PartialEq)]
+pub enum Mode {
+    Listen,
+    Send,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Parser)]
-pub struct Parameters {
+#[clap(author, version, about, long_about = None)]
+pub struct App {
+    /// Listen for transmissions or send stdin?
+    #[clap(subcommand)]
+    pub mode: Mode,
+
     /// Module Address (16 Bit).
     #[clap(short, long, required = true)]
     pub address: u16,
@@ -57,21 +68,8 @@ pub struct Parameters {
     pub transmission_power: TransmissionPower,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Parser)]
-#[clap(author, version, about, long_about = None)]
-pub struct App {
-    #[clap(subcommand)]
-    pub mode: Mode,
-}
-
-#[derive(clap::Subcommand, Clone, Debug, Eq, PartialEq)]
-pub enum Mode {
-    Listen(Parameters),
-    Send(Parameters),
-}
-
-impl From<&Parameters> for ebyte_e32::parameters::Parameters {
-    fn from(params: &Parameters) -> Self {
+impl From<&App> for ebyte_e32::parameters::Parameters {
+    fn from(params: &App) -> Self {
         Self {
             address: params.address,
             channel: params.channel,

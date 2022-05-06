@@ -1,6 +1,7 @@
-use crate::interface::App;
+use crate::interface::Mode;
 use ebyte_e32::{parameters::Parameters, Ebyte};
 use embedded_hal::prelude::*;
+use interface::App;
 use linux_embedded_hal::Delay;
 use nb::block;
 use rppal::{
@@ -28,11 +29,6 @@ pub fn process(args: App) {
     let params = ebyte.parameters().unwrap();
     println!("Parameters before: {params:#?}");
 
-    let (args, listen) = match args.mode {
-        interface::Mode::Listen(p) => (p, true),
-        interface::Mode::Send(p) => (p, false),
-    };
-
     println!("Updating parameters (persistence: {:?})", args.persistence);
     ebyte
         .set_parameters(&Parameters::from(&args), args.persistence)
@@ -40,7 +36,7 @@ pub fn process(args: App) {
     let params = ebyte.parameters().unwrap();
     println!("Parameters after customization: {params:#?}");
 
-    if listen {
+    if args.mode == Mode::Listen {
         loop {
             let b = block!(ebyte.read()).unwrap();
             print!("{}", b as char);

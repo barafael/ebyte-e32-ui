@@ -8,7 +8,7 @@ name = "ebyte-e32-cli"
 path = "bin/cli.rs"
 
 [[bin]]
-name = "ebyte-e32-ui"
+name = "ebyte-e32-gui"
 path = "bin/gui.rs"
 
 [dependencies]

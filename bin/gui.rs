@@ -1,5 +1,4 @@
-use ebyte_e32_ui::interface::App;
-use ebyte_e32_ui::process;
+use ebyte_e32_ui::{interface::App, process};
 use klask::Settings;
 
 fn main() {
