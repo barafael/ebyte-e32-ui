@@ -3,6 +3,14 @@ name = "ebyte-e32-ui"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "ebyte-e32-cli"
+path = "bin/cli.rs"
+
+[[bin]]
+name = "ebyte-e32-ui"
+path = "bin/gui.rs"
+
 [dependencies]
 clap = { version = "3.1.14", features = ["derive"] }
 #ebyte-e32 = { git = "https://github.com/barafael/ebyte-e32-rs", features = ["arg_enum"] }

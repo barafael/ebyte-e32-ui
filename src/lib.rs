@@ -1,8 +1,6 @@
-use crate::cli::App;
-use clap::StructOpt;
+use crate::interface::App;
 use ebyte_e32::{parameters::Parameters, Ebyte};
 use embedded_hal::prelude::*;
-use klask::Settings;
 use linux_embedded_hal::Delay;
 use nb::block;
 use rppal::{
@@ -12,22 +10,9 @@ use rppal::{
 use rustyline::{error::ReadlineError, Editor};
 use std::io::{self, Write};
 
-mod cli;
+pub mod interface;
 
-fn main() {
-    let args = App::try_parse();
-    match args {
-        Ok(app) => process(app),
-        Err(e) => {
-            eprintln!("{}", e);
-            let mut settings = Settings::default();
-            settings.enable_stdin = Some("Description".to_string());
-            klask::run_derived::<App, _>(settings, process);
-        }
-    }
-}
-
-fn process(args: App) {
+pub fn process(args: App) {
     let serial = Uart::with_path("/dev/ttyAMA0", 9600, Parity::None, 8, 1).unwrap();
 
     let gpio = Gpio::new().unwrap();
@@ -44,8 +29,8 @@ fn process(args: App) {
     println!("Parameters before: {params:#?}");
 
     let (args, listen) = match args.mode {
-        cli::Mode::Listen(p) => (p, true),
-        cli::Mode::Send(p) => (p, false),
+        interface::Mode::Listen(p) => (p, true),
+        interface::Mode::Send(p) => (p, false),
     };
 
     println!("Updating parameters (persistence: {:?})", args.persistence);
