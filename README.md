@@ -26,6 +26,14 @@ For the CLI, [clap](https://github.com/clap-rs/clap) is used. For the GUI, on to
 
 ![image](https://user-images.githubusercontent.com/6966738/167198228-d15e67e7-de91-4b65-a96f-f3ecb1c98f81.png)
 
+(As can be seen here, you can run the GUI on your normal OS, just usually it wont have a serial port ang GPIOs like the PI 3)
+
+# Portability
+
+The UI program will only work on Raspberry Pi 3. It could be simply extended to run on other systems which have e.g. linux-embedded-hal support, though currently the RPPAL crate is used (but simple to replace with linux-embedded-hal).
+
+Of course, the underlying driver is completely independent.
+
 # CLI Help
 
 ```
