@@ -57,7 +57,7 @@ pub fn process(args: App) {
                         print!("{}", *b as char);
                         io::stdout().flush().unwrap();
                     }
-                    block!(ebyte.write('\n' as u8)).unwrap();
+                    block!(ebyte.write(b'\n')).unwrap();
                     println!();
                 }
                 Err(ReadlineError::Interrupted) => {
