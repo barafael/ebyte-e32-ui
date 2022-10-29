@@ -11,15 +11,16 @@ use nb::block;
 use rppal::{gpio::Gpio, uart::Uart};
 use rustyline::{error::ReadlineError, Editor};
 use std::fmt::Debug;
+use std::fs::read_to_string;
 use std::io::{self, Write};
 
 pub mod config;
 pub mod interface;
 
 pub fn load_default_config() -> Config {
-    let config = std::fs::read_to_string("Config.toml").unwrap_or_else(|e| {
+    let config = read_to_string("Config.toml").unwrap_or_else(|e| {
         panic!(
-            "Failed to open Config.toml [{e:?}] here's a default: {:#?}",
+            "Failed to open Config.toml [{e:?}]\nHere's a default: {:#?}",
             Config::default()
         )
     });
@@ -48,12 +49,14 @@ pub fn process(config: Config, args: App) {
 
     let new_params = Parameters::from(&args);
 
-    if new_params != old_params {
+    if new_params == old_params {
+        println!("Leaving parameters unchanged");
+    } else {
         println!("Updating parameters (persistence: {:?})", args.persistence);
         ebyte.set_parameters(&new_params, args.persistence).unwrap();
         let current_params = ebyte.parameters().unwrap();
         if current_params != new_params {
-            eprintln!("Parameters unchanged: {current_params:#?}");
+            eprintln!("Error: parameters unchanged: {current_params:#?}");
         }
     }
 
