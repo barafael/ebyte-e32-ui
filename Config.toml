@@ -1,0 +1,8 @@
+serial_path = "/dev/ttyAMA0"
+baudrate = 9600
+parity = "None"
+data_bits = 8
+stop_bits = 1
+aux_pin = 18
+m0_pin = 23
+m1_pin = 24

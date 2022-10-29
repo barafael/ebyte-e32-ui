@@ -11,6 +11,7 @@ use rppal::{
 use rustyline::{error::ReadlineError, Editor};
 use std::io::{self, Write};
 
+pub mod config;
 pub mod interface;
 
 pub fn process(args: App) {

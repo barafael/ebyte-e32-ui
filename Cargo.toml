@@ -25,3 +25,6 @@ linux-embedded-hal = "0.3.2"
 nb = "1.0.0"
 rppal = { version = "0.13.1", features = ["hal", "hal-unproven"] }
 rustyline = "10.0.0"
+serde = "1.0.147"
+serde_derive = "1.0.147"
+toml = "0.5.9"
