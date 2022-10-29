@@ -13,8 +13,8 @@ pub struct Config {
     pub(crate) m1_pin: u8,
 }
 
-impl Default for Config {
-    fn default() -> Self {
+impl Config {
+    pub fn example() -> Self {
         Config {
             serial_path: "dev/ttyAMA0".into(),
             baudrate: 9600,

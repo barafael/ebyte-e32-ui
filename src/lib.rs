@@ -20,8 +20,8 @@ pub mod interface;
 pub fn load_default_config() -> Config {
     let config = read_to_string("Config.toml").unwrap_or_else(|e| {
         panic!(
-            "Failed to open Config.toml [{e:?}]\nHere's a default: {:#?}",
-            Config::default()
+            "Failed to open Config.toml [{e:?}]\nHere's an example: {:#?}",
+            Config::example()
         )
     });
     toml::from_str(&config).expect("Failed to parse config")
