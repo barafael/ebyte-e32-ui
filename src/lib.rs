@@ -60,6 +60,7 @@ pub fn process(config: Config, args: App) {
     match args.mode {
         Mode::Send => send(ebyte),
         Mode::ReadModelData => {
+            println!("Reading model data");
             let model_data = ebyte.model_data().unwrap();
             println!("{model_data:#?}");
         }
