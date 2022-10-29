@@ -1,13 +1,10 @@
-use crate::interface::Mode;
+use crate::{config::Config, interface::Mode};
 use ebyte_e32::{parameters::Parameters, Ebyte};
 use embedded_hal::prelude::*;
 use interface::App;
 use linux_embedded_hal::Delay;
 use nb::block;
-use rppal::{
-    gpio::Gpio,
-    uart::{Parity, Uart},
-};
+use rppal::{gpio::Gpio, uart::Uart};
 use rustyline::{error::ReadlineError, Editor};
 use std::io::{self, Write};
 
@@ -15,12 +12,27 @@ pub mod config;
 pub mod interface;
 
 pub fn process(args: App) {
-    let serial = Uart::with_path("/dev/ttyAMA0", 9600, Parity::None, 8, 1).unwrap();
+    let config = std::fs::read_to_string("Config.toml").unwrap_or_else(|e| {
+        panic!(
+            "Failed to open Config.toml [{e:?}] here's a default: {:#?}",
+            Config::default()
+        )
+    });
+    let config: Config = toml::from_str(&config).expect("Failed to parse config");
+
+    let serial = Uart::with_path(
+        config.serial_path,
+        config.baudrate,
+        config.parity.into(),
+        config.data_bits,
+        config.stop_bits,
+    )
+    .expect("Failed to set up serial port");
 
     let gpio = Gpio::new().unwrap();
-    let aux = gpio.get(18).unwrap().into_input();
-    let m0 = gpio.get(23).unwrap().into_output();
-    let m1 = gpio.get(24).unwrap().into_output();
+    let aux = gpio.get(config.aux_pin).unwrap().into_input();
+    let m0 = gpio.get(config.m0_pin).unwrap().into_output();
+    let m1 = gpio.get(config.m1_pin).unwrap().into_output();
 
     let mut ebyte = Ebyte::new(serial, aux, m0, m1, Delay).unwrap();
 
