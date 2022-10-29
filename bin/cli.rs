@@ -1,4 +1,4 @@
-use clap::StructOpt;
+use clap::Parser;
 use ebyte_e32_ui::{interface::App, load_default_config, process};
 
 fn main() {
