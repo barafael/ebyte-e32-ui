@@ -12,6 +12,7 @@ use ebyte_e32::parameters::{
 
 #[derive(clap::Subcommand, Clone, Debug, Eq, PartialEq)]
 pub enum Mode {
+    ReadModelData,
     Listen,
     Send,
 }

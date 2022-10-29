@@ -1,11 +1,16 @@
 use crate::{config::Config, interface::Mode};
 use ebyte_e32::{parameters::Parameters, Ebyte};
+use embedded_hal::blocking::delay::DelayMs;
+use embedded_hal::digital::v2::InputPin;
+use embedded_hal::digital::v2::OutputPin;
 use embedded_hal::prelude::*;
+use embedded_hal::serial;
 use interface::App;
 use linux_embedded_hal::Delay;
 use nb::block;
 use rppal::{gpio::Gpio, uart::Uart};
 use rustyline::{error::ReadlineError, Editor};
+use std::fmt::Debug;
 use std::io::{self, Write};
 
 pub mod config;
@@ -38,38 +43,42 @@ pub fn process(config: Config, args: App) {
 
     let mut ebyte = Ebyte::new(serial, aux, m0, m1, Delay).unwrap();
 
-    let model_data = ebyte.model_data().unwrap();
-    println!("Model data: {model_data:#?}");
+    let old_params = ebyte.parameters().unwrap();
+    println!("Loaded parameters: {old_params:#?}");
 
-    let params = ebyte.parameters().unwrap();
-    println!("Parameters before: {params:#?}");
+    let new_params = Parameters::from(&args);
 
-    println!("Updating parameters (persistence: {:?})", args.persistence);
-    ebyte
-        .set_parameters(&Parameters::from(&args), args.persistence)
-        .unwrap();
-    let params = ebyte.parameters().unwrap();
-    println!("Parameters after customization: {params:#?}");
+    if new_params != old_params {
+        println!("Updating parameters (persistence: {:?})", args.persistence);
+        ebyte.set_parameters(&new_params, args.persistence).unwrap();
+        let current_params = ebyte.parameters().unwrap();
+        if current_params != new_params {
+            eprintln!("Parameters unchanged: {current_params:#?}");
+        }
+    }
 
-    if args.mode == Mode::Listen {
-        loop {
+    match args.mode {
+        Mode::Send => send(ebyte),
+        Mode::ReadModelData => {
+            let model_data = ebyte.model_data().unwrap();
+            println!("{model_data:#?}");
+        }
+        Mode::Listen => loop {
             let b = block!(ebyte.read()).unwrap();
             print!("{}", b as char);
             io::stdout().flush().unwrap();
-        }
-    } else {
-        send(ebyte)
+        },
     }
 }
 
 fn send<S, Aux, M0, M1, D>(mut ebyte: Ebyte<S, Aux, M0, M1, D, ebyte_e32::mode::Normal>)
 where
-    S: embedded_hal::serial::Read<u8> + embedded_hal::serial::Write<u8>,
-    <S as embedded_hal::serial::Write<u8>>::Error: std::fmt::Debug,
-    Aux: embedded_hal::digital::v2::InputPin,
-    M0: embedded_hal::digital::v2::OutputPin,
-    M1: embedded_hal::digital::v2::OutputPin,
-    D: embedded_hal::blocking::delay::DelayMs<u32>,
+    S: serial::Read<u8> + serial::Write<u8>,
+    <S as serial::Write<u8>>::Error: Debug,
+    Aux: InputPin,
+    M0: OutputPin,
+    M1: OutputPin,
+    D: DelayMs<u32>,
 {
     let mut prompt = Editor::<()>::new().expect("Failed to set up prompt");
     loop {
