@@ -17,54 +17,54 @@ pub enum Mode {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Parser)]
-#[clap(author, version, about, long_about = None)]
+#[command(author, version, about, long_about = None)]
 pub struct App {
     /// Listen for transmissions or send stdin?
-    #[clap(subcommand)]
+    #[command(subcommand)]
     pub mode: Mode,
 
     /// Module Address (16 Bit).
-    #[clap(short, long, required = true)]
+    #[arg(short, long, required = true)]
     pub address: u16,
 
     /// Channel (8 Bit).
-    #[clap(short, long, required = true)]
+    #[arg(short, long, required = true)]
     pub channel: u8,
 
     /// Whether settings should be saved persistently on the module.
-    #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
+    #[arg(value_enum, long, required = false, ignore_case(true), default_value_t)]
     pub persistence: Persistence,
 
     /// UART Parity.
-    #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
+    #[arg(value_enum, long, required = false, ignore_case(true), default_value_t)]
     pub uart_parity: Parity,
 
     /// UART Baudrate.
-    #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
+    #[arg(value_enum, long, required = false, ignore_case(true), default_value_t)]
     pub uart_rate: BaudRate,
 
     /// Air Baudrate.
-    #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
+    #[arg(value_enum, long, required = false, ignore_case(true), default_value_t)]
     pub air_rate: AirBaudRate,
 
     /// Transmission Mode.
-    #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
+    #[arg(value_enum, long, required = false, ignore_case(true), default_value_t)]
     pub transmission_mode: TransmissionMode,
 
     /// IO drive Mode for AUX pin.
-    #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
+    #[arg(value_enum, long, required = false, ignore_case(true), default_value_t)]
     pub io_drive_mode: IoDriveMode,
 
     /// Wireless Wakeup Time.
-    #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
+    #[arg(value_enum, long, required = false, ignore_case(true), default_value_t)]
     pub wakeup_time: WakeupTime,
 
     /// Forward Error Correction Mode.
-    #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
+    #[arg(value_enum, long, required = false, ignore_case(true), default_value_t)]
     pub fec: ForwardErrorCorrectionMode,
 
     /// Transmission Power.
-    #[clap(arg_enum, long, required = false, ignore_case(true), default_value_t)]
+    #[arg(value_enum, long, required = false, ignore_case(true), default_value_t)]
     pub transmission_power: TransmissionPower,
 }
 

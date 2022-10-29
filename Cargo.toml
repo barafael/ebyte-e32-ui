@@ -13,12 +13,12 @@ name = "ebyte-e32-gui"
 path = "bin/gui.rs"
 
 [dependencies]
-clap = { version = "3.1.14", features = ["derive"] }
-ebyte-e32 = { git = "https://github.com/barafael/ebyte-e32-rs", features = [
-    "arg_enum",
-] }
-#ebyte-e32 = { path = "../ebyte-e32-rs", features = ["arg_enum"] }
-#ebyte-e32 = { version = "0.5.0", features = ["arg_enum"] }
+clap = { version = "4", features = ["derive"] }
+#ebyte-e32 = { git = "https://github.com/barafael/ebyte-e32-rs", features = [
+#"value_enum",
+#] }
+#ebyte-e32 = { path = "../ebyte-e32-rs", features = ["value_enum"] }
+ebyte-e32 = { version = "0.6.0", features = ["value_enum"] }
 embedded-hal = "0.2.7"
 klask = "1"
 linux-embedded-hal = "0.3.2"
