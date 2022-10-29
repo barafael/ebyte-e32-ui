@@ -11,15 +11,17 @@ use std::io::{self, Write};
 pub mod config;
 pub mod interface;
 
-pub fn process(args: App) {
+pub fn load_default_config() -> Config {
     let config = std::fs::read_to_string("Config.toml").unwrap_or_else(|e| {
         panic!(
             "Failed to open Config.toml [{e:?}] here's a default: {:#?}",
             Config::default()
         )
     });
-    let config: Config = toml::from_str(&config).expect("Failed to parse config");
+    toml::from_str(&config).expect("Failed to parse config")
+}
 
+pub fn process(config: Config, args: App) {
     let serial = Uart::with_path(
         config.serial_path,
         config.baudrate,

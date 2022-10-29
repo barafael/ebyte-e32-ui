@@ -1,7 +1,8 @@
 use clap::StructOpt;
-use ebyte_e32_ui::{interface::App, process};
+use ebyte_e32_ui::{interface::App, load_default_config, process};
 
 fn main() {
+    let config = load_default_config();
     let args = App::parse();
-    process(args);
+    process(config, args);
 }
