@@ -1,6 +1,7 @@
 use serde_derive::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+/// Configuration for connecting to the Ebyte module.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Config {
     pub(crate) serial_path: PathBuf,
@@ -14,6 +15,7 @@ pub struct Config {
 }
 
 impl Config {
+    /// Example configuration
     pub fn example() -> Self {
         Config {
             serial_path: "dev/ttyAMA0".into(),

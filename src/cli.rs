@@ -1,3 +1,5 @@
+//! A CLI interface with configuration data for running an Ebyte module.
+
 use clap::Parser;
 use ebyte_e32::parameters::{
     air_baudrate::AirBaudRate,
@@ -10,17 +12,24 @@ use ebyte_e32::parameters::{
     Persistence,
 };
 
+/// Operational mode for Ebyte module driver.
 #[derive(clap::Subcommand, Clone, Debug, Eq, PartialEq)]
 pub enum Mode {
+    /// Read Ebyte module data and print to stdout.
     ReadModelData,
+
+    /// Listen for incoming data on the Ebyte module.
     Listen,
+
+    /// Send data from stdin over the Ebyte module.
     Send,
 }
 
+/// CLI interface definition.
 #[derive(Clone, Debug, PartialEq, Eq, Parser)]
 #[clap(author, version, about, long_about = None)]
 pub struct App {
-    /// Listen for transmissions or send stdin?
+    /// Application mode.
     #[clap(subcommand)]
     pub mode: Mode,
 

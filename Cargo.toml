@@ -13,6 +13,7 @@ name = "ebyte-e32-gui"
 path = "bin/gui.rs"
 
 [dependencies]
+anyhow = "1.0.66"
 clap = { version = "3.1.14", features = ["derive"] }
 ebyte-e32 = { git = "https://github.com/barafael/ebyte-e32-rs", rev = "fee291a427df8e7c55e8dc154e181257ebb52a41", features = [
     "arg_enum",

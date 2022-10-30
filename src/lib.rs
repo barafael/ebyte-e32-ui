@@ -1,11 +1,15 @@
-use crate::{config::Config, interface::Mode};
+//! Ebyte module control.
+
+use crate::{cli::Mode, config::Config};
+use anyhow::Context;
+use anyhow::Result;
+use cli::App;
 use ebyte_e32::{parameters::Parameters, Ebyte};
 use embedded_hal::blocking::delay::DelayMs;
 use embedded_hal::digital::v2::InputPin;
 use embedded_hal::digital::v2::OutputPin;
 use embedded_hal::prelude::*;
 use embedded_hal::serial;
-use interface::App;
 use linux_embedded_hal::Delay;
 use nb::block;
 use rppal::{gpio::Gpio, uart::Uart};
@@ -14,20 +18,22 @@ use std::fmt::Debug;
 use std::fs::read_to_string;
 use std::io::{self, Write};
 
+/// Configuration from `Config.toml`.
 pub mod config;
-pub mod interface;
 
-pub fn load_default_config() -> Config {
-    let config = read_to_string("Config.toml").unwrap_or_else(|e| {
-        panic!(
-            "Failed to open Config.toml [{e:?}]\nHere's an example: {:#?}",
-            Config::example()
-        )
-    });
-    toml::from_str(&config).expect("Failed to parse config")
+/// Command line interface.
+pub mod cli;
+
+/// Load a configuration from `Config.toml`,
+/// returning an error if something goes wrong.
+pub fn load_config() -> Result<Config> {
+    let config = read_to_string("Config.toml").context("Failed to open Config.toml")?;
+    toml::from_str(&config).context("Failed to parse config")
 }
 
-pub fn process(config: Config, args: App) {
+/// Setup the hardware, then load some parameters,
+/// update them if needed, then listen, send, or read model data.
+pub fn process(config: Config, args: App) -> anyhow::Result<()> {
     let serial = Uart::with_path(
         config.serial_path,
         config.baudrate,
@@ -35,16 +41,27 @@ pub fn process(config: Config, args: App) {
         config.data_bits,
         config.stop_bits,
     )
-    .expect("Failed to set up serial port");
+    .context("Failed to set up serial port")?;
 
-    let gpio = Gpio::new().unwrap();
-    let aux = gpio.get(config.aux_pin).unwrap().into_input();
-    let m0 = gpio.get(config.m0_pin).unwrap().into_output();
-    let m1 = gpio.get(config.m1_pin).unwrap().into_output();
+    let gpio = Gpio::new().context("Failed to open Gpio")?;
+    let aux = gpio
+        .get(config.aux_pin)
+        .context("Failed to open AUX pin")?
+        .into_input();
+    let m0 = gpio
+        .get(config.m0_pin)
+        .context("Failed to open m0 pin")?
+        .into_output();
+    let m1 = gpio
+        .get(config.m1_pin)
+        .context("Failed to open m1 pin")?
+        .into_output();
 
     let mut ebyte = Ebyte::new(serial, aux, m0, m1, Delay).unwrap();
 
-    let old_params = ebyte.parameters().unwrap();
+    let old_params = ebyte
+        .parameters()
+        .expect("Failed to read current parameters");
     println!("Loaded parameters: {old_params:#?}");
 
     let new_params = Parameters::from(&args);
@@ -53,8 +70,12 @@ pub fn process(config: Config, args: App) {
         println!("Leaving parameters unchanged");
     } else {
         println!("Updating parameters (persistence: {:?})", args.persistence);
-        ebyte.set_parameters(&new_params, args.persistence).unwrap();
-        let current_params = ebyte.parameters().unwrap();
+        ebyte
+            .set_parameters(&new_params, args.persistence)
+            .expect("Failed to set new parameters");
+        let current_params = ebyte
+            .parameters()
+            .expect("Failed to read current parameters");
         if current_params != new_params {
             eprintln!("Error: parameters unchanged: {current_params:#?}");
         }
@@ -64,8 +85,9 @@ pub fn process(config: Config, args: App) {
         Mode::Send => send(ebyte),
         Mode::ReadModelData => {
             println!("Reading model data");
-            let model_data = ebyte.model_data().unwrap();
+            let model_data = ebyte.model_data().expect("Failed to read model data");
             println!("{model_data:#?}");
+            Ok(())
         }
         Mode::Listen => loop {
             let b = block!(ebyte.read()).unwrap();
@@ -75,7 +97,9 @@ pub fn process(config: Config, args: App) {
     }
 }
 
-fn send<S, Aux, M0, M1, D>(mut ebyte: Ebyte<S, Aux, M0, M1, D, ebyte_e32::mode::Normal>)
+fn send<S, Aux, M0, M1, D>(
+    mut ebyte: Ebyte<S, Aux, M0, M1, D, ebyte_e32::mode::Normal>,
+) -> anyhow::Result<()>
 where
     S: serial::Read<u8> + serial::Write<u8>,
     <S as serial::Write<u8>>::Error: Debug,
@@ -115,4 +139,5 @@ where
             }
         }
     }
+    Ok(())
 }

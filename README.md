@@ -40,6 +40,10 @@ m1_pin = 24
 * CLI: `cargo run --bin ebyte-e32-cli -- [OPTIONS] --address <ADDRESS> --channel <CHANNEL> {listen|send|read-model-data}`. For `send` mode, enter your messages in the prompt or pipe them in via `stdin`.
 * GUI: `cargo run` or `cargo run --bin ebyte-e32-gui`. For `send` mode, the input provided in the `Input` tab is sent (there, you can also open a file to read the input from).
 
+## Persistence
+
+With the `persistence` argument, the settings can be saved `temporary` or `permanent`.
+
 ## Screenshots
 
 ![image](https://user-images.githubusercontent.com/6966738/167198228-d15e67e7-de91-4b65-a96f-f3ecb1c98f81.png)
