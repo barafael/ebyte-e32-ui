@@ -1,4 +1,5 @@
 # ebyte-e32-ui
+
 Ebyte E32 Command Line Interface + minimal GUI.
 
 Works with Ebyte-E32 LoRa modules on raspberry pi with configurable pin assignment.
@@ -9,7 +10,7 @@ For the CLI, [clap](https://github.com/clap-rs/clap) is used.
 
 For the GUI, on top of clap, [klask](https://github.com/MichalGniadek/klask) is used.
 
-# Example Pinout
+## Example Pinout
 
 Configurable with `Config.toml` in the same directory as the binary:
 
@@ -34,26 +35,26 @@ m1_pin = 24
 | TX        | 15 (RX)                           |
 | RX        | 14 (TX)                           |
 
-# Usage
+## Usage
 
- * CLI: `cargo run --bin ebyte-e32-cli -- [OPTIONS] --address <ADDRESS> --channel <CHANNEL> {listen|send|read-model-data}`. For `send` mode, enter your messages in the prompt or pipe them in via `stdin`.
- * GUI: `cargo run` or `cargo run --bin ebyte-e32-gui`. For `send` mode, the input provided in the `Input` tab is sent (there, you can also open a file to read the input from).
+* CLI: `cargo run --bin ebyte-e32-cli -- [OPTIONS] --address <ADDRESS> --channel <CHANNEL> {listen|send|read-model-data}`. For `send` mode, enter your messages in the prompt or pipe them in via `stdin`.
+* GUI: `cargo run` or `cargo run --bin ebyte-e32-gui`. For `send` mode, the input provided in the `Input` tab is sent (there, you can also open a file to read the input from).
 
-# Screenshots
+## Screenshots
 
 ![image](https://user-images.githubusercontent.com/6966738/167198228-d15e67e7-de91-4b65-a96f-f3ecb1c98f81.png)
 
 You can run the GUI on your normal OS for testing.
 
-# Portability
+## Portability
 
 This program will only work on Raspberry Pi because of its dependency on `rppal`. Maybe at some point it should run on any system with `linux-embedded-hal`.
 
 Of course, the underlying driver ([ebyte-e32-rs](https://github.com/barafael/ebyte-e32-rs)) is platform-agnostic.
 
-# CLI Help
+## CLI Help
 
-```
+```text
 ebyte-e32-ui 0.2.0
 
 USAGE:
@@ -111,24 +112,10 @@ SUBCOMMANDS:
     send
 ```
 
-# Raspberry Pi Setup
+## Raspberry Pi Setup
 
- * The serial port hardware peripheral must be enabled (but without login shell).
+The serial port hardware peripheral must be enabled (but without login shell).
 
-# Cross Build
+## Simplified Dependency Graph
 
-* Install something like the linaro cross compiler: 
-
-```
-aur/arm-linux-gnueabihf-gcc75-linaro-bin
-```
-
- * Build with 
-
-```
-cross build --target=armv7-unknown-linux-gnueabihf
-```
-
-# Simplified Dependency Graph
-
-<img src="graph.png">
+![graph](graph.png)
