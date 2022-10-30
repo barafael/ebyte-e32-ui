@@ -46,9 +46,18 @@ With the `persistence` argument, the settings can be saved `temporary` or `perma
 
 ## Screenshots
 
-![image](https://user-images.githubusercontent.com/6966738/167198228-d15e67e7-de91-4b65-a96f-f3ecb1c98f81.png)
-
 You can run the GUI on your normal OS for testing.
+
+[comment]: # (https://user-images.githubusercontent.com/6966738/198895795-4d86303b-e282-4a05-8b39-d640ff9164c3.png)
+[comment]: # (https://user-images.githubusercontent.com/6966738/198894630-6973925f-c167-433e-9375-8420d34d75a4.png)
+[comment]: # (https://user-images.githubusercontent.com/6966738/198893498-46752f22-6d51-4489-af25-c0965a7860d1.png)
+[comment]: # (https://user-images.githubusercontent.com/6966738/198893565-c187172b-1537-4fb9-a781-10f4e9425a33.png)
+[comment]: # (https://user-images.githubusercontent.com/6966738/198893601-feab2e98-d819-40b2-bb85-fffc83d21f9f.png)
+[comment]: # (https://user-images.githubusercontent.com/6966738/198895149-eb45ee81-d6e2-42b1-b0a5-840b524bc5f5.png)
+[comment]: # (https://user-images.githubusercontent.com/6966738/198895230-c795f820-9af3-45fb-bbad-dd2ba84f4b48.png)
+[comment]: # (https://user-images.githubusercontent.com/6966738/198895335-6e06b4ac-0d1c-4260-b8bc-c8e662ad4567.png)
+
+<img src="https://user-images.githubusercontent.com/6966738/198895795-4d86303b-e282-4a05-8b39-d640ff9164c3.png" width="23%"></img> <img src="https://user-images.githubusercontent.com/6966738/198894630-6973925f-c167-433e-9375-8420d34d75a4.png" width="23%"></img> <img src="https://user-images.githubusercontent.com/6966738/198893498-46752f22-6d51-4489-af25-c0965a7860d1.png" width="23%"></img> <img src="https://user-images.githubusercontent.com/6966738/198893565-c187172b-1537-4fb9-a781-10f4e9425a33.png" width="23%"></img> <img src="https://user-images.githubusercontent.com/6966738/198893601-feab2e98-d819-40b2-bb85-fffc83d21f9f.png" width="23%"></img> <img src="https://user-images.githubusercontent.com/6966738/198895149-eb45ee81-d6e2-42b1-b0a5-840b524bc5f5.png" width="23%"></img> <img src="https://user-images.githubusercontent.com/6966738/198895230-c795f820-9af3-45fb-bbad-dd2ba84f4b48.png" width="23%"></img> <img src="https://user-images.githubusercontent.com/6966738/198895335-6e06b4ac-0d1c-4260-b8bc-c8e662ad4567.png" width="23%"></img>
 
 ## Portability
 
@@ -60,6 +69,7 @@ Of course, the underlying driver ([ebyte-e32-rs](https://github.com/barafael/eby
 
 ```text
 ebyte-e32-ui 0.2.0
+CLI interface definition
 
 USAGE:
     ebyte-e32-cli [OPTIONS] --address <ADDRESS> --channel <CHANNEL> <SUBCOMMAND>
@@ -111,9 +121,9 @@ OPTIONS:
 
 SUBCOMMANDS:
     help               Print this message or the help of the given subcommand(s)
-    listen
-    read-model-data
-    send
+    listen             Listen for incoming data on the Ebyte module
+    read-model-data    Read Ebyte module data and print to stdout
+    send               Send data from stdin over the Ebyte module
 ```
 
 ## Raspberry Pi Setup
