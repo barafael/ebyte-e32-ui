@@ -1,7 +1,10 @@
 [package]
 name = "ebyte-e32-ui"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
+description = "CLI + GUI for interacting with EByte E32 LoRa modules"
+license-file = "LICENSE"
+repository = "https://github.com/barafael/ebyte-e32-ui"
 default-run = "ebyte-e32-gui"
 
 [[bin]]
