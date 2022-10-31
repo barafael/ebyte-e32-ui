@@ -16,8 +16,9 @@ pub struct Config {
 
 impl Config {
     /// Example configuration
+    #[must_use]
     pub fn example() -> Self {
-        Config {
+        Self {
             serial_path: "dev/ttyAMA0".into(),
             baudrate: 9600,
             parity: Parity::None,
@@ -49,11 +50,11 @@ pub(crate) enum Parity {
 impl From<Parity> for rppal::uart::Parity {
     fn from(value: Parity) -> Self {
         match value {
-            Parity::None => rppal::uart::Parity::None,
-            Parity::Even => rppal::uart::Parity::Even,
-            Parity::Odd => rppal::uart::Parity::Odd,
-            Parity::Mark => rppal::uart::Parity::Mark,
-            Parity::Space => rppal::uart::Parity::Space,
+            Parity::None => Self::None,
+            Parity::Even => Self::Even,
+            Parity::Odd => Self::Odd,
+            Parity::Mark => Self::Mark,
+            Parity::Space => Self::Space,
         }
     }
 }

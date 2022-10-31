@@ -26,6 +26,9 @@ pub mod cli;
 
 /// Load a configuration from `Config.toml`,
 /// returning an error if something goes wrong.
+///
+/// # Errors
+/// Opening "Config.toml" and parsing it may fail, returning error.
 pub fn load_config() -> Result<Config> {
     let config = read_to_string("Config.toml").context("Failed to open Config.toml")?;
     toml::from_str(&config).context("Failed to parse config")
@@ -33,6 +36,10 @@ pub fn load_config() -> Result<Config> {
 
 /// Setup the hardware, then load some parameters,
 /// update them if needed, then listen, send, or read model data.
+///
+/// # Panics
+/// Failed initialization of the module driver
+/// or communicating with the module may cause a panic.
 pub fn process(config: Config, args: App) -> anyhow::Result<()> {
     let serial = Uart::with_path(
         config.serial_path,
@@ -57,7 +64,7 @@ pub fn process(config: Config, args: App) -> anyhow::Result<()> {
         .context("Failed to open m1 pin")?
         .into_output();
 
-    let mut ebyte = Ebyte::new(serial, aux, m0, m1, Delay).unwrap();
+    let mut ebyte = Ebyte::new(serial, aux, m0, m1, Delay).expect("Failed to initialize driver");
 
     let old_params = ebyte
         .parameters()
@@ -82,7 +89,10 @@ pub fn process(config: Config, args: App) -> anyhow::Result<()> {
     }
 
     match args.mode {
-        Mode::Send => send(ebyte),
+        Mode::Send => {
+            send(ebyte);
+            Ok(())
+        }
         Mode::ReadModelData => {
             println!("Reading model data");
             let model_data = ebyte.model_data().expect("Failed to read model data");
@@ -90,16 +100,14 @@ pub fn process(config: Config, args: App) -> anyhow::Result<()> {
             Ok(())
         }
         Mode::Listen => loop {
-            let b = block!(ebyte.read()).unwrap();
+            let b = block!(ebyte.read()).expect("Failed to read");
             print!("{}", b as char);
-            io::stdout().flush().unwrap();
+            io::stdout().flush().expect("Failed to flush");
         },
     }
 }
 
-fn send<S, Aux, M0, M1, D>(
-    mut ebyte: Ebyte<S, Aux, M0, M1, D, ebyte_e32::mode::Normal>,
-) -> anyhow::Result<()>
+fn send<S, Aux, M0, M1, D>(mut ebyte: Ebyte<S, Aux, M0, M1, D, ebyte_e32::mode::Normal>)
 where
     S: serial::Read<u8> + serial::Write<u8>,
     <S as serial::Write<u8>>::Error: Debug,
@@ -118,11 +126,11 @@ where
                 prompt.add_history_entry(&line);
 
                 for b in line.as_bytes() {
-                    block!(ebyte.write(*b)).unwrap();
+                    block!(ebyte.write(*b)).expect("Failed to write");
                     print!("{}", *b as char);
-                    io::stdout().flush().unwrap();
+                    io::stdout().flush().expect("Failed to flush");
                 }
-                block!(ebyte.write(b'\n')).unwrap();
+                block!(ebyte.write(b'\n')).expect("Failed to write");
                 println!();
             }
             Err(ReadlineError::Interrupted) => {
@@ -139,5 +147,4 @@ where
             }
         }
     }
-    Ok(())
 }
