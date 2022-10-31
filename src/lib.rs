@@ -1,5 +1,7 @@
 //! Ebyte module control.
 
+#![doc = include_str!("../README.md")]
+
 use crate::{cli::Mode, config::Config};
 use anyhow::Context;
 use anyhow::Result;
