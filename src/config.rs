@@ -1,3 +1,4 @@
+use linux_embedded_hal::serial_core;
 use serde_derive::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -9,9 +10,9 @@ pub struct Config {
     pub(crate) parity: Parity,
     pub(crate) data_bits: u8,
     pub(crate) stop_bits: u8,
-    pub(crate) aux_pin: u8,
-    pub(crate) m0_pin: u8,
-    pub(crate) m1_pin: u8,
+    pub(crate) aux_pin: u64,
+    pub(crate) m0_pin: u64,
+    pub(crate) m1_pin: u64,
 }
 
 impl Config {
@@ -31,7 +32,7 @@ impl Config {
     }
 }
 
-/// Same as `[rppal::uart::Parity]`,
+/// Same as [`linux_embedded_hal::serial_core::Parity`],
 /// copied only for serde purposes.
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Deserialize, Serialize)]
 pub(crate) enum Parity {
@@ -41,20 +42,48 @@ pub(crate) enum Parity {
     Even,
     /// Odd parity.
     Odd,
-    /// Sets parity bit to `1`.
-    Mark,
-    /// Sets parity bit to `0`.
-    Space,
 }
 
-impl From<Parity> for rppal::uart::Parity {
+impl From<Parity> for serial_core::Parity {
     fn from(value: Parity) -> Self {
         match value {
-            Parity::None => Self::None,
-            Parity::Even => Self::Even,
-            Parity::Odd => Self::Odd,
-            Parity::Mark => Self::Mark,
-            Parity::Space => Self::Space,
+            Parity::None => Self::ParityNone,
+            Parity::Even => Self::ParityEven,
+            Parity::Odd => Self::ParityOdd,
+        }
+    }
+}
+
+/// Same as [`linux_embedded_hal::serial_core::StopBits`],
+/// copied only for serde purposes.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub(crate) enum StopBits {
+    /// One stop bit.
+    Stop1,
+
+    /// Two stop bits.
+    Stop2,
+}
+
+impl TryFrom<u8> for StopBits {
+    type Error = anyhow::Error;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            1 => Ok(Self::Stop1),
+            2 => Ok(Self::Stop2),
+            n => anyhow::bail!(
+                "'{n}' is not a valid value for stop bits. Valid values are '1' and '2'."
+            ),
+        }
+    }
+}
+
+impl From<StopBits> for serial_core::StopBits {
+    fn from(value: StopBits) -> Self {
+        match value {
+            StopBits::Stop1 => Self::Stop1,
+            StopBits::Stop2 => Self::Stop2,
         }
     }
 }

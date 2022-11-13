@@ -2,6 +2,7 @@
 
 #![doc = include_str!("../README.md")]
 
+use crate::config::StopBits;
 use crate::{cli::Mode, config::Config};
 use anyhow::Context;
 use anyhow::Result;
@@ -12,9 +13,16 @@ use embedded_hal::digital::v2::InputPin;
 use embedded_hal::digital::v2::OutputPin;
 use embedded_hal::prelude::*;
 use embedded_hal::serial;
+use linux_embedded_hal::serial_core::BaudRate;
+use linux_embedded_hal::serial_core::CharSize;
+use linux_embedded_hal::serial_core::FlowControl;
+use linux_embedded_hal::serial_core::PortSettings;
+use linux_embedded_hal::serial_core::SerialPort;
+use linux_embedded_hal::serial_unix::TTYPort;
+use linux_embedded_hal::sysfs_gpio::Direction;
+use linux_embedded_hal::sysfs_gpio::Pin;
 use linux_embedded_hal::Delay;
 use nb::block;
-use rppal::{gpio::Gpio, uart::Uart};
 use rustyline::{error::ReadlineError, Editor};
 use std::fmt::Debug;
 use std::fs::read_to_string;
@@ -43,28 +51,37 @@ pub fn load_config() -> Result<Config> {
 /// Failed initialization of the module driver
 /// or communicating with the module may cause a panic.
 pub fn process(config: Config, args: App) -> anyhow::Result<()> {
-    let serial = Uart::with_path(
-        config.serial_path,
-        config.baudrate,
-        config.parity.into(),
-        config.data_bits,
-        config.stop_bits,
-    )
-    .context("Failed to set up serial port")?;
+    let baud_rate = BaudRate::from_speed(config.baudrate as usize);
+    let stop_bits = StopBits::try_from(config.stop_bits)
+        .context("Failed to parse stop bits")?
+        .into();
+    let settings: PortSettings = PortSettings {
+        baud_rate,
+        char_size: CharSize::Bits8,
+        parity: config.parity.into(),
+        stop_bits,
+        flow_control: FlowControl::FlowNone,
+    };
+    let mut serial = TTYPort::open(&config.serial_path).unwrap();
+    serial
+        .configure(&settings)
+        .context("Failed to set up serial port")?;
+    let serial = linux_embedded_hal::Serial(serial);
 
-    let gpio = Gpio::new().context("Failed to open Gpio")?;
-    let aux = gpio
-        .get(config.aux_pin)
-        .context("Failed to open AUX pin")?
-        .into_input();
-    let m0 = gpio
-        .get(config.m0_pin)
-        .context("Failed to open m0 pin")?
-        .into_output();
-    let m1 = gpio
-        .get(config.m1_pin)
-        .context("Failed to open m1 pin")?
-        .into_output();
+    let aux = Pin::new(config.aux_pin);
+    aux.set_direction(Direction::In)
+        .context("Failed to open AUX pin")?;
+    let aux = linux_embedded_hal::Pin(aux);
+
+    let m0 = Pin::new(config.m0_pin);
+    m0.set_direction(Direction::Out)
+        .context("Failed to open m0 pin")?;
+    let m0 = linux_embedded_hal::Pin(m0);
+
+    let m1 = Pin::new(config.m1_pin);
+    m1.set_direction(Direction::Out)
+        .context("Failed to open m1 pin")?;
+    let m1 = linux_embedded_hal::Pin(m1);
 
     let mut ebyte = Ebyte::new(serial, aux, m0, m1, Delay).expect("Failed to initialize driver");
 
