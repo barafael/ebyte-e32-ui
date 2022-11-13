@@ -2,9 +2,11 @@
 
 Ebyte E32 Command Line Interface + minimal GUI.
 
-Works with Ebyte-E32 LoRa modules on raspberry pi with configurable pin assignment.
+Works with Ebyte-E32 LoRa modules with configurable pin assignment.
+The Linux sysfs interface is used to interact with GPIO and the serial port.
 
-Uses [ebyte-e32-rs](https://github.com/barafael/ebyte-e32-rs) as a driver, plus some traits from [embedded-hal](https://github.com/rust-embedded/embedded-hal) and their implementations from [RPPAL](https://github.com/golemparts/rppal).
+Uses [ebyte-e32-rs](https://github.com/barafael/ebyte-e32-rs) as a driver,
+plus some traits from [embedded-hal](https://github.com/rust-embedded/embedded-hal) and their implementations from [linux-embedded-hal](https://github.com/rust-embedded/linux-embedded-hal).
 
 For the CLI, [clap](https://github.com/clap-rs/clap) is used.
 
@@ -35,6 +37,34 @@ m1_pin = 24
 | TX        | 15 (RX)                           |
 | RX        | 14 (TX)                           |
 
+## A Note about SYSFS GPIO Pins
+
+To have access to the configured sysfs gpio pins,
+you may need to enable them first.
+This can be done by:
+
+```bash
+echo 18 > /sys/class/gpio/export
+echo 23 > /sys/class/gpio/export
+echo 24 > /sys/class/gpio/export
+```
+
+This way, the settings will not persist over reboots,
+but it's good for experimentation.
+
+To re-apply the settings on each boot,
+
+ * install `sysfsutils`,
+ * check its status with `systemctl status sysfsutils`
+ * create a file `/etc/sysfs.d/local-gpio.conf`:
+ * reboot, then check with `ls /sys/class/gpio` that the expected pin directories have been created.
+
+```not_rust
+class/gpio/export = 18
+class/gpio/export = 23
+class/gpio/export = 24
+```
+
 ## Usage
 
 * CLI: `cargo run --bin ebyte-e32-cli -- [OPTIONS] --address <ADDRESS> --channel <CHANNEL> {listen|send|read-model-data}`. For `send` mode, enter your messages in the prompt or pipe them in via `stdin`.
@@ -43,6 +73,7 @@ m1_pin = 24
 ## Persistence
 
 With the `persistence` argument, the settings can be saved `temporary` or `permanent`.
+In `permanent` mode, the settings will be persisted onto the LoRa module.
 
 ## Screenshots
 
@@ -61,9 +92,10 @@ You can run the GUI on your normal OS for testing.
 
 ## Portability
 
-This program will only work on Raspberry Pi because of its dependency on `rppal`. Maybe at some point it should run on any system with `linux-embedded-hal`.
+This program requires only the sysfs interface.
+It used to only run on Raspberry Pis, but this limitation has been dropped.
 
-Of course, the underlying driver ([ebyte-e32-rs](https://github.com/barafael/ebyte-e32-rs)) is platform-agnostic.
+Of course, the underlying driver ([ebyte-e32-rs](https://github.com/barafael/ebyte-e32-rs)) is platform-agnostic (doesn't require linux, just implementations of `embedded-hal`).
 
 ## CLI Help
 
@@ -126,7 +158,7 @@ SUBCOMMANDS:
     send               Send data from stdin over the Ebyte module
 ```
 
-## Raspberry Pi Setup
+## Raspberry Pi Serial Port Setup
 
 The serial port hardware peripheral must be enabled (but without login shell).
 
