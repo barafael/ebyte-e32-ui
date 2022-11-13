@@ -57,13 +57,14 @@ To re-apply the settings on each boot,
  * install `sysfsutils`,
  * check its status with `systemctl status sysfsutils`
  * create a file `/etc/sysfs.d/local-gpio.conf`:
- * reboot, then check with `ls /sys/class/gpio` that the expected pin directories have been created.
 
 ```not_rust
 class/gpio/export = 18
 class/gpio/export = 23
 class/gpio/export = 24
 ```
+
+* reboot, then check with `ls /sys/class/gpio` that the expected pin directories have been created.
 
 ## Usage
 
