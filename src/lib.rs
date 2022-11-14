@@ -13,14 +13,14 @@ use embedded_hal::digital::v2::InputPin;
 use embedded_hal::digital::v2::OutputPin;
 use embedded_hal::prelude::*;
 use embedded_hal::serial;
+use linux_embedded_hal::gpio_cdev::{Chip, LineRequestFlags};
 use linux_embedded_hal::serial_core::BaudRate;
 use linux_embedded_hal::serial_core::CharSize;
 use linux_embedded_hal::serial_core::FlowControl;
 use linux_embedded_hal::serial_core::PortSettings;
 use linux_embedded_hal::serial_core::SerialPort;
 use linux_embedded_hal::serial_unix::TTYPort;
-use linux_embedded_hal::sysfs_gpio::Direction;
-use linux_embedded_hal::sysfs_gpio::Pin;
+use linux_embedded_hal::CdevPin as Pin;
 use linux_embedded_hal::Delay;
 use nb::block;
 use rustyline::{error::ReadlineError, Editor};
@@ -62,26 +62,37 @@ pub fn process(config: Config, args: App) -> anyhow::Result<()> {
         stop_bits,
         flow_control: FlowControl::FlowNone,
     };
-    let mut serial = TTYPort::open(&config.serial_path).unwrap();
+
+    let mut serial = TTYPort::open(&config.serial_path)
+        .with_context(|| format!("Failed to open TTY {}", config.serial_path.display()))?;
     serial
         .configure(&settings)
         .context("Failed to set up serial port")?;
     let serial = linux_embedded_hal::Serial(serial);
 
-    let aux = Pin::new(config.aux_pin);
-    aux.set_direction(Direction::In)
-        .context("Failed to open AUX pin")?;
-    let aux = linux_embedded_hal::Pin(aux);
+    let mut gpiochip = Chip::new(&config.gpiochip_path)
+        .with_context(|| format!("Failed to open gpiochip {}", config.gpiochip_path.display()))?;
 
-    let m0 = Pin::new(config.m0_pin);
-    m0.set_direction(Direction::Out)
-        .context("Failed to open m0 pin")?;
-    let m0 = linux_embedded_hal::Pin(m0);
+    let aux = gpiochip
+        .get_line(config.aux_pin)
+        .context("Failed to get AUX line")?
+        .request(LineRequestFlags::INPUT, 0, "ebyte-e32-ui")
+        .context("Failed to request settings for AUX pin")?;
+    let aux = Pin::new(aux).context("Failed to create AUX CDEV pin")?;
 
-    let m1 = Pin::new(config.m1_pin);
-    m1.set_direction(Direction::Out)
-        .context("Failed to open m1 pin")?;
-    let m1 = linux_embedded_hal::Pin(m1);
+    let m0 = gpiochip
+        .get_line(config.m0_pin)
+        .context("Failed to get M0 line")?
+        .request(LineRequestFlags::OUTPUT, 0, "ebyte-e32-ui")
+        .context("Failed to request settings for M0 pin")?;
+    let m0 = Pin::new(m0).context("Failed to create M0 CDEV pin")?;
+
+    let m1 = gpiochip
+        .get_line(config.m1_pin)
+        .context("Failed to get M1 line")?
+        .request(LineRequestFlags::OUTPUT, 0, "ebyte-e32-ui")
+        .context("Failed to request settings for M1 pin")?;
+    let m1 = Pin::new(m1).context("Failed to create M1 CDEV pin")?;
 
     let mut ebyte = Ebyte::new(serial, aux, m0, m1, Delay).expect("Failed to initialize driver");
 
