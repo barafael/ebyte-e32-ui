@@ -6,7 +6,7 @@ use crate::config::StopBits;
 use crate::{cli::Mode, config::Config};
 use anyhow::Context;
 use anyhow::Result;
-use cli::App;
+use cli::Args;
 use ebyte_e32::{parameters::Parameters, Ebyte};
 use embedded_hal::blocking::delay::DelayMs;
 use embedded_hal::digital::v2::InputPin;
@@ -27,6 +27,7 @@ use rustyline::{error::ReadlineError, Editor};
 use std::fmt::Debug;
 use std::fs::read_to_string;
 use std::io::{self, Write};
+use std::path::Path;
 
 /// Configuration from `Config.toml`.
 pub mod config;
@@ -34,14 +35,26 @@ pub mod config;
 /// Command line interface.
 pub mod cli;
 
-/// Load a configuration from `Config.toml`,
+/// Load a configuration from the given file path,
 /// returning an error if something goes wrong.
 ///
 /// # Errors
-/// Opening "Config.toml" and parsing it may fail, returning error.
-pub fn load_config() -> Result<Config> {
-    let config = read_to_string("Config.toml").context("Failed to open Config.toml")?;
-    toml::from_str(&config).context("Failed to parse config")
+/// Opening the file and parsing it may fail, returning error.
+pub fn load_config(config_path: impl AsRef<Path>) -> Result<Config> {
+    let path = read_to_string(&config_path).with_context(|| {
+        format!(
+            "Failed to open config file {}",
+            config_path.as_ref().display()
+        )
+    })?;
+    let Ok(config) = toml::from_str(&path) else {
+        eprintln!(
+            "Failed to parse configuration file. Here's an example:\n{}",
+            toml::to_string(&Config::example()).unwrap()
+        );
+        anyhow::bail!("Failed to parse config");
+    };
+    Ok(config)
 }
 
 /// Setup the hardware, then load some parameters,
@@ -50,7 +63,8 @@ pub fn load_config() -> Result<Config> {
 /// # Panics
 /// Failed initialization of the module driver
 /// or communicating with the module may cause a panic.
-pub fn process(config: Config, args: App) -> anyhow::Result<()> {
+pub fn process(args: Args) -> anyhow::Result<()> {
+    let config = load_config(&args.config_file).context("Failed to get config")?;
     let baud_rate = BaudRate::from_speed(config.baudrate as usize);
     let stop_bits = StopBits::try_from(config.stop_bits)
         .context("Failed to parse stop bits")?
@@ -172,7 +186,7 @@ where
                 break;
             }
             Err(err) => {
-                println!("Error: {:?}", err);
+                println!("Error: {err:?}");
                 break;
             }
         }

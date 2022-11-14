@@ -1,6 +1,6 @@
 //! A CLI interface with configuration data for running an Ebyte module.
 
-use clap::Parser;
+use clap::{Parser, ValueHint};
 use ebyte_e32::parameters::{
     air_baudrate::AirBaudRate,
     baudrate::BaudRate,
@@ -11,6 +11,7 @@ use ebyte_e32::parameters::{
     uart_parity::Parity,
     Persistence,
 };
+use std::path::PathBuf;
 
 /// Operational mode for Ebyte module driver.
 #[derive(clap::Subcommand, Clone, Debug, Eq, PartialEq)]
@@ -28,7 +29,11 @@ pub enum Mode {
 /// CLI interface definition.
 #[derive(Clone, Debug, PartialEq, Eq, Parser)]
 #[clap(author, version, about, long_about = None)]
-pub struct App {
+pub struct Args {
+    /// Configuration file.
+    #[clap(long, parse(from_os_str), default_value = "Config.toml", value_hint = ValueHint::FilePath)]
+    pub config_file: PathBuf,
+
     /// Application mode.
     #[clap(subcommand)]
     pub mode: Mode,
@@ -78,8 +83,8 @@ pub struct App {
     pub transmission_power: TransmissionPower,
 }
 
-impl From<&App> for ebyte_e32::parameters::Parameters {
-    fn from(params: &App) -> Self {
+impl From<&Args> for ebyte_e32::parameters::Parameters {
+    fn from(params: &Args) -> Self {
         Self {
             address: params.address,
             channel: params.channel,
