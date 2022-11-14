@@ -88,8 +88,8 @@ the M0 and M1 lines must support being output lines.
 ## CLI Help
 
 ```text
-ebyte-e32-ui 0.2.0
-CLI interface definition
+ebyte-e32-ui 0.4.0
+CLI + GUI for interacting with EByte E32 LoRa modules
 
 USAGE:
     ebyte-e32-cli [OPTIONS] --address <ADDRESS> --channel <CHANNEL> <SUBCOMMAND>
@@ -104,6 +104,9 @@ OPTIONS:
 
     -c, --channel <CHANNEL>
             Channel (8 Bit)
+
+        --config-file <CONFIG_FILE>
+            Configuration file [default: Config.toml]
 
         --fec <FEC>
             Forward Error Correction Mode [default: on] [possible values: on, off]
