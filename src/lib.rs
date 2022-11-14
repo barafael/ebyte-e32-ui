@@ -47,14 +47,13 @@ pub fn load_config(config_path: impl AsRef<Path>) -> Result<Config> {
             config_path.as_ref().display()
         )
     })?;
-    let Ok(config) = toml::from_str(&path) else {
+    toml::from_str(&path).map_err(|e| {
         eprintln!(
             "Failed to parse configuration file. Here's an example:\n{}",
             toml::to_string(&Config::example()).unwrap()
         );
-        anyhow::bail!("Failed to parse config");
-    };
-    Ok(config)
+        anyhow::anyhow!(e)
+    })
 }
 
 /// Setup the hardware, then load some parameters,
