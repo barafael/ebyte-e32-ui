@@ -10,9 +10,10 @@ pub struct Config {
     pub(crate) parity: Parity,
     pub(crate) data_bits: u8,
     pub(crate) stop_bits: u8,
-    pub(crate) aux_pin: u64,
-    pub(crate) m0_pin: u64,
-    pub(crate) m1_pin: u64,
+    pub(crate) gpiochip_path: PathBuf,
+    pub(crate) aux_pin: u32,
+    pub(crate) m0_pin: u32,
+    pub(crate) m1_pin: u32,
 }
 
 impl Config {
@@ -25,6 +26,7 @@ impl Config {
             parity: Parity::None,
             data_bits: 8,
             stop_bits: 1,
+            gpiochip_path: "/dev/gpiochip0".into(),
             aux_pin: 18,
             m0_pin: 23,
             m1_pin: 24,
@@ -106,6 +108,7 @@ mod test {
             baudrate: 115200,
             data_bits: 8,
             stop_bits: 1,
+            gpiochip_path: "/dev/gpiochip0".into(),
             aux_pin: 0,
             m0_pin: 1,
             m1_pin: 2,

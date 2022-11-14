@@ -3,6 +3,7 @@ baudrate = 9600
 parity = "None"
 data_bits = 8
 stop_bits = 1
+gpiochip_path = "/dev/gpiochip0"
 aux_pin = 18
 m0_pin = 23
 m1_pin = 24
