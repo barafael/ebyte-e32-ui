@@ -2,59 +2,32 @@
 
 #![doc = include_str!("../README.md")]
 
-use crate::config::StopBits;
-use crate::{cli::Mode, config::Config};
 use anyhow::Context;
-use anyhow::Result;
-use cli::Args;
-use ebyte_e32::{parameters::Parameters, Ebyte};
-use embedded_hal::blocking::delay::DelayMs;
-use embedded_hal::digital::v2::InputPin;
-use embedded_hal::digital::v2::OutputPin;
-use embedded_hal::prelude::*;
-use embedded_hal::serial;
-use linux_embedded_hal::gpio_cdev::{Chip, LineRequestFlags};
-use linux_embedded_hal::serial_core::BaudRate;
-use linux_embedded_hal::serial_core::CharSize;
-use linux_embedded_hal::serial_core::FlowControl;
-use linux_embedded_hal::serial_core::PortSettings;
-use linux_embedded_hal::serial_core::SerialPort;
-use linux_embedded_hal::serial_unix::TTYPort;
-use linux_embedded_hal::CdevPin as Pin;
-use linux_embedded_hal::Delay;
+use ebyte_e32::{mode::Normal, parameters::Parameters, Ebyte};
+use embedded_hal::{
+    blocking::delay,
+    digital::v2::{InputPin, OutputPin},
+    serial::{self, Read, Write},
+};
+use linux_embedded_hal::{
+    gpio_cdev::{Chip, LineRequestFlags},
+    serial_core::{BaudRate, CharSize, FlowControl, PortSettings, SerialPort},
+    serial_unix::TTYPort,
+    CdevPin as Pin, {Delay, Serial},
+};
 use nb::block;
 use rustyline::{error::ReadlineError, Editor};
 use std::fmt::Debug;
-use std::fs::read_to_string;
-use std::io::{self, Write};
-use std::path::Path;
+use {
+    arguments::{Args, Mode},
+    config::{load, StopBits},
+};
 
 /// Configuration from `Config.toml`.
 pub mod config;
 
 /// Command line interface.
-pub mod cli;
-
-/// Load a configuration from the given file path,
-/// returning an error if something goes wrong.
-///
-/// # Errors
-/// Opening the file and parsing it may fail, returning error.
-pub fn load_config(config_path: impl AsRef<Path>) -> Result<Config> {
-    let path = read_to_string(&config_path).with_context(|| {
-        format!(
-            "Failed to open config file {}",
-            config_path.as_ref().display()
-        )
-    })?;
-    toml::from_str(&path).map_err(|e| {
-        eprintln!(
-            "Failed to parse configuration file. Here's an example:\n{}",
-            toml::to_string(&Config::example()).unwrap()
-        );
-        anyhow::anyhow!(e)
-    })
-}
+pub mod arguments;
 
 /// Setup the hardware, then load some parameters,
 /// update them if needed, then listen, send, or read model data.
@@ -62,8 +35,8 @@ pub fn load_config(config_path: impl AsRef<Path>) -> Result<Config> {
 /// # Panics
 /// Failed initialization of the module driver
 /// or communicating with the module may cause a panic.
-pub fn process(args: Args) -> anyhow::Result<()> {
-    let config = load_config(&args.config_file).context("Failed to get config")?;
+pub fn create(args: &Args) -> anyhow::Result<Ebyte<Serial, Pin, Pin, Pin, Delay, Normal>> {
+    let config = load(&args.config_file).context("Failed to get config")?;
     let baud_rate = BaudRate::from_speed(config.baudrate as usize);
     let stop_bits = StopBits::try_from(config.stop_bits)
         .context("Failed to parse stop bits")?
@@ -81,7 +54,7 @@ pub fn process(args: Args) -> anyhow::Result<()> {
     serial
         .configure(&settings)
         .context("Failed to set up serial port")?;
-    let serial = linux_embedded_hal::Serial(serial);
+    let serial = Serial(serial);
 
     let mut gpiochip = Chip::new(&config.gpiochip_path)
         .with_context(|| format!("Failed to open gpiochip {}", config.gpiochip_path.display()))?;
@@ -107,14 +80,28 @@ pub fn process(args: Args) -> anyhow::Result<()> {
         .context("Failed to request settings for M1 pin")?;
     let m1 = Pin::new(m1).context("Failed to create M1 CDEV pin")?;
 
-    let mut ebyte = Ebyte::new(serial, aux, m0, m1, Delay).expect("Failed to initialize driver");
+    Ok(Ebyte::new(serial, aux, m0, m1, Delay).expect("Failed to initialize driver"))
+}
 
+pub fn run<S, AUX, M0, M1, D>(
+    args: &Args,
+    mut ebyte: Ebyte<S, AUX, M0, M1, D, Normal>,
+) -> anyhow::Result<()>
+where
+    S: serial::Read<u8> + serial::Write<u8>,
+    <S as serial::Read<u8>>::Error: Debug,
+    <S as serial::Write<u8>>::Error: Debug,
+    AUX: InputPin,
+    M0: OutputPin,
+    M1: OutputPin,
+    D: delay::DelayMs<u32>,
+{
     let old_params = ebyte
         .parameters()
         .expect("Failed to read current parameters");
     println!("Loaded parameters: {old_params:#?}");
 
-    let new_params = Parameters::from(&args);
+    let new_params = Parameters::from(args);
 
     if new_params == old_params {
         println!("Leaving parameters unchanged");
@@ -145,19 +132,20 @@ pub fn process(args: Args) -> anyhow::Result<()> {
         Mode::Listen => loop {
             let b = block!(ebyte.read()).expect("Failed to read");
             print!("{}", b as char);
-            io::stdout().flush().expect("Failed to flush");
+            std::io::Write::flush(&mut std::io::stdout()).expect("Failed to flush");
         },
     }
 }
 
-fn send<S, Aux, M0, M1, D>(mut ebyte: Ebyte<S, Aux, M0, M1, D, ebyte_e32::mode::Normal>)
+fn send<S, AUX, M0, M1, D>(mut ebyte: Ebyte<S, AUX, M0, M1, D, ebyte_e32::mode::Normal>)
 where
     S: serial::Read<u8> + serial::Write<u8>,
+    <S as serial::Read<u8>>::Error: Debug,
     <S as serial::Write<u8>>::Error: Debug,
-    Aux: InputPin,
+    AUX: InputPin,
     M0: OutputPin,
     M1: OutputPin,
-    D: DelayMs<u32>,
+    D: delay::DelayMs<u32>,
 {
     let mut prompt = Editor::<()>::new().expect("Failed to set up prompt");
     loop {
@@ -171,7 +159,7 @@ where
                 for b in line.as_bytes() {
                     block!(ebyte.write(*b)).expect("Failed to write");
                     print!("{}", *b as char);
-                    io::stdout().flush().expect("Failed to flush");
+                    std::io::Write::flush(&mut std::io::stdout()).expect("Failed to flush");
                 }
                 block!(ebyte.write(b'\n')).expect("Failed to write");
                 println!();

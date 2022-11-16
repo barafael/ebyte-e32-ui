@@ -1,7 +1,31 @@
+use anyhow::{Context, Result};
 use linux_embedded_hal::serial_core;
 use serde_derive::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::{
+    fs::read_to_string,
+    path::{Path, PathBuf},
+};
 
+/// Load a configuration from the given file path,
+/// returning an error if something goes wrong.
+///
+/// # Errors
+/// Opening the file and parsing it may fail, returning error.
+pub fn load(config_path: impl AsRef<Path>) -> Result<Config> {
+    let path = read_to_string(&config_path).with_context(|| {
+        format!(
+            "Failed to open config file {}",
+            config_path.as_ref().display()
+        )
+    })?;
+    toml::from_str(&path).map_err(|e| {
+        eprintln!(
+            "Failed to parse configuration file. Here's an example:\n{}",
+            toml::to_string(&Config::example()).unwrap()
+        );
+        anyhow::anyhow!(e)
+    })
+}
 /// Configuration for connecting to the Ebyte module.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Config {

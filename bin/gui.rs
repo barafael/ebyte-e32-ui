@@ -1,4 +1,4 @@
-use ebyte_e32_ui::{cli::Args, process};
+use ebyte_e32_ui::{arguments::Args, create, run};
 use klask::Settings;
 
 fn main() {
@@ -7,6 +7,7 @@ fn main() {
         ..Default::default()
     };
     klask::run_derived::<Args, _>(settings, |args| {
-        process(args).expect("Failed to run app");
+        let ebyte = create(&args).expect("Failed to run app");
+        run(&args, ebyte).expect("Failed to run");
     });
 }

@@ -1,9 +1,9 @@
 use anyhow::Context;
 use clap::StructOpt;
-use ebyte_e32_ui::{cli::Args, process};
+use ebyte_e32_ui::{arguments::Args, create, run};
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
-    process(args).context("Failed to run app")?;
-    Ok(())
+    let ebyte = create(&args).context("Failed to run app")?;
+    run(&args, ebyte).context("Failed to run")
 }
