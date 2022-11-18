@@ -48,11 +48,20 @@ This directory also contains an example `Config.toml`.
 
 * Reading model data or parameters (good first test):
 
-        ebyte-e32-cli {read-model-data|read-parameters}
+    ```text
+    ebyte-e32-cli {read-model-data|read-parameters}
+    ```
 
 * Listen for transmissions:
 
-        ebyte-e32-cli listen
+    ```text
+    ebyte-e32-cli listen
+    ```
+* Configure for address 1, channel 16, no forward error correction, permanent persistence:
+
+    ```text
+    ebyte-e32-cli configure --address 1 --channel 16 --fec off --persistence permanent
+    ```
 
 For `send` mode, enter your messages in the prompt or pipe them in via `stdin`.
 
