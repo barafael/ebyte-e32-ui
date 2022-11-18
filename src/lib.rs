@@ -19,10 +19,8 @@ use nb::block;
 use rustyline::{error::ReadlineError, Editor};
 use std::fmt::Debug;
 
-use {
-    arguments::{Args, Mode},
-    config::{load, StopBits},
-};
+use arguments::{Args, Mode};
+use config::{load, StopBits};
 
 /// Configuration from `Config.toml`.
 pub mod config;
