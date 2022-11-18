@@ -208,7 +208,9 @@ where
         let current_params = ebyte
             .parameters()
             .context("Failed to read current parameters")?;
-        if current_params != new_params {
+        if current_params == new_params {
+            println!("Successfully applied new parameters");
+        } else {
             eprintln!("Error: parameters unchanged: {current_params:#?}");
         }
     }
