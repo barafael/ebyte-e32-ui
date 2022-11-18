@@ -21,8 +21,9 @@ clap = { version = "3.1.14", features = ["derive"] }
 #ebyte-e32 = { git = "https://github.com/barafael/ebyte-e32-rs", rev = "fee291a427df8e7c55e8dc154e181257ebb52a41", features = [
 #"arg_enum",
 #] }
-#ebyte-e32 = { path = "../ebyte-e32-rs", features = ["value_enum"] }
-ebyte-e32 = { version = "0.7.0", features = ["value_enum"] }
+ebyte-e32 = { version = "0.8.0", features = [
+    "value_enum",
+], path = "../ebyte-e32-rs" }
 embedded-hal = "0.2.7"
 klask = "1"
 linux-embedded-hal = "0.3.2"

@@ -13,10 +13,10 @@ For the CLI, [clap](https://github.com/clap-rs/clap) is used.
 
 For the GUI, on top of clap, [klask](https://github.com/MichalGniadek/klask) is used.
 
-## Example Pinout
+## Example Pinout and Configuration
 
 Configurable with `Config.toml` in the same directory as the binary
-(or set the option `config_file`):
+(or set the option `config`):
 
 ```toml
 serial_path = "/dev/ttyAMA0"
@@ -40,19 +40,40 @@ m1_pin = 24
 | TX        | 15 (RX)                           |
 | RX        | 14 (TX)                           |
 
-## Usage
+## CLI Usage Examples
 
-* CLI: `cargo run --bin ebyte-e32-cli -- [OPTIONS] --address <ADDRESS> --channel <CHANNEL> {listen|send|read-model-data}`. For `send` mode, enter your messages in the prompt or pipe them in via `stdin`.
-* GUI: `cargo run` or `cargo run --bin ebyte-e32-gui`. For `send` mode, the input provided in the `Input` tab is sent (there, you can also open a file to read the input from).
+In these examples, you can substitute `ebyte-e32-cli` with `cargo run --bin ebyte-e32-cli`
+if you are in the project root directory.
+This directory also contains an example `Config.toml`.
 
-## Persistence
+* Reading model data or parameters (good first test):
 
-With the `persistence` argument, the settings can be saved `temporary` or `permanent`.
-In `permanent` mode, the settings will be persisted onto the LoRa module.
+        ebyte-e32-cli {read-model-data|read-parameters}
+
+* Listen for transmissions:
+
+        ebyte-e32-cli listen
+
+For `send` mode, enter your messages in the prompt or pipe them in via `stdin`.
+
+## GUI Usage Notes
+
+The GUI is the default target, meaning you can launch it with `cargo run`.
+For sending data, the data provided in the `Input` tab is used (where you can also select a file to read the input from).
+
+## Configuration and Persistence
+
+With the `Configuration` subcommand, the module parameters can be adjusted.
+Note that your module settings have to match the other module's settings for any transmission to be successful.
+
+With the `persistence` option of the `Configuration` subcommand, the settings can be saved (`temporary` or `permanent`).
+In `permanent` mode, the settings will be persisted onto the module.
 
 ## Screenshots
 
 You can run the GUI on your normal OS for testing.
+
+These screenshots are slightly outdated but show the features of the GUI and CLI:
 
 [comment]: # (https://user-images.githubusercontent.com/6966738/198895795-4d86303b-e282-4a05-8b39-d640ff9164c3.png)
 [comment]: # (https://user-images.githubusercontent.com/6966738/198894630-6973925f-c167-433e-9375-8420d34d75a4.png)
@@ -87,12 +108,37 @@ the M0 and M1 lines must support being output lines.
 
 ## CLI Help
 
+Top-level help:
+
 ```text
-ebyte-e32-ui 0.4.0
+ebyte-e32-ui 0.5.0
 CLI + GUI for interacting with EByte E32 LoRa modules
 
 USAGE:
-    ebyte-e32-cli [OPTIONS] --address <ADDRESS> --channel <CHANNEL> <SUBCOMMAND>
+    ebyte-e32-cli [OPTIONS] <SUBCOMMAND>
+
+OPTIONS:
+        --config <CONFIG>    Configuration file [default: Config.toml]
+    -h, --help               Print help information
+    -V, --version            Print version information
+
+SUBCOMMANDS:
+    configure          Write Ebyte module parameters
+    help               Print this message or the help of the given subcommand(s)
+    listen             Listen for incoming data on the Ebyte module
+    read-model-data    Read Ebyte module data and print to stdout
+    read-parameters    Read Ebyte module parameters and print to stdout
+    send               Send data from stdin over the Ebyte module
+```
+
+Configuration subcommand help (`ebyte-e32-cli help configure`):
+
+```text
+ebyte-e32-cli-configure
+Write Ebyte module parameters
+
+USAGE:
+    ebyte-e32-cli configure [OPTIONS] --address <ADDRESS> --channel <CHANNEL>
 
 OPTIONS:
     -a, --address <ADDRESS>
@@ -104,9 +150,6 @@ OPTIONS:
 
     -c, --channel <CHANNEL>
             Channel (8 Bit)
-
-        --config-file <CONFIG_FILE>
-            Configuration file [default: Config.toml]
 
         --fec <FEC>
             Forward Error Correction Mode [default: on] [possible values: on, off]
@@ -135,19 +178,12 @@ OPTIONS:
             UART Baudrate [default: bps9600] [possible values: bps1200, bps2400, bps4800, bps9600,
             bps19200, bps38400, bps57600, bps115200]
 
-    -V, --version
-            Print version information
-
         --wakeup-time <WAKEUP_TIME>
             Wireless Wakeup Time [default: ms250] [possible values: ms250, ms500, ms750, ms1000,
             ms1250, ms1500, ms1750, ms2000]
-
-SUBCOMMANDS:
-    help               Print this message or the help of the given subcommand(s)
-    listen             Listen for incoming data on the Ebyte module
-    read-model-data    Read Ebyte module data and print to stdout
-    send               Send data from stdin over the Ebyte module
 ```
+
+The other subcommands have no further options.
 
 ## Raspberry Pi Serial Port Setup
 

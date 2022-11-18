@@ -3,7 +3,7 @@
 #![doc = include_str!("../README.md")]
 
 use anyhow::Context;
-use ebyte_e32::{mode::Normal, parameters::Parameters, Ebyte};
+use ebyte_e32::{mode::Normal, Ebyte};
 use embedded_hal::{
     blocking::delay,
     digital::v2::{InputPin, OutputPin},
@@ -18,6 +18,7 @@ use linux_embedded_hal::{
 use nb::block;
 use rustyline::{error::ReadlineError, Editor};
 use std::fmt::Debug;
+
 use {
     arguments::{Args, Mode},
     config::{load, StopBits},
@@ -36,7 +37,7 @@ pub mod arguments;
 /// Failed initialization of the module driver
 /// or communicating with the module may cause a panic.
 pub fn create(args: &Args) -> anyhow::Result<Ebyte<Serial, Pin, Pin, Pin, Delay, Normal>> {
-    let config = load(&args.config_file).context("Failed to get config")?;
+    let config = load(&args.config).context("Failed to get config")?;
     let baud_rate = BaudRate::from_speed(config.baudrate as usize);
     let stop_bits = StopBits::try_from(config.stop_bits)
         .context("Failed to parse stop bits")?
@@ -96,48 +97,32 @@ where
     M1: OutputPin,
     D: delay::DelayMs<u32>,
 {
-    let old_params = ebyte
-        .parameters()
-        .expect("Failed to read current parameters");
-    println!("Loaded parameters: {old_params:#?}");
-
-    let new_params = Parameters::from(args);
-
-    if new_params == old_params {
-        println!("Leaving parameters unchanged");
-    } else {
-        println!("Updating parameters (persistence: {:?})", args.persistence);
-        ebyte
-            .set_parameters(&new_params, args.persistence)
-            .expect("Failed to set new parameters");
-        let current_params = ebyte
-            .parameters()
-            .expect("Failed to read current parameters");
-        if current_params != new_params {
-            eprintln!("Error: parameters unchanged: {current_params:#?}");
-        }
-    }
-
     match args.mode {
-        Mode::Send => {
-            send(ebyte);
-            Ok(())
-        }
+        Mode::Send => send(ebyte),
+        Mode::Listen => loop {
+            let b = block!(ebyte.read()).expect("Failed to read");
+            print!("{}", b as char);
+            std::io::Write::flush(&mut std::io::stdout()).expect("Failed to flush");
+        },
         Mode::ReadModelData => {
             println!("Reading model data");
             let model_data = ebyte.model_data().expect("Failed to read model data");
             println!("{model_data:#?}");
             Ok(())
         }
-        Mode::Listen => loop {
-            let b = block!(ebyte.read()).expect("Failed to read");
-            print!("{}", b as char);
-            std::io::Write::flush(&mut std::io::stdout()).expect("Failed to flush");
-        },
+        Mode::ReadParameters => {
+            println!("Reading parameter data");
+            let parameters = ebyte.parameters().expect("Failed to read parameter data");
+            println!("{parameters:#?}");
+            Ok(())
+        }
+        Mode::Configure(ref parameters) => configure(ebyte, parameters),
     }
 }
 
-fn send<S, AUX, M0, M1, D>(mut ebyte: Ebyte<S, AUX, M0, M1, D, ebyte_e32::mode::Normal>)
+fn send<S, AUX, M0, M1, D>(
+    mut ebyte: Ebyte<S, AUX, M0, M1, D, ebyte_e32::mode::Normal>,
+) -> anyhow::Result<()>
 where
     S: serial::Read<u8> + serial::Write<u8>,
     <S as serial::Read<u8>>::Error: Debug,
@@ -178,4 +163,54 @@ where
             }
         }
     }
+    Ok(())
+}
+
+/// Apply new parameters to the Ebyte module, optionally persisting them.
+/// 1. Read old parameters from module.
+/// 2. Check if the given parameters and the loaded ones are equal, if so, bail.
+/// 3. Apply new parameters.
+/// 4. Read them back, warning if they are not equal to the given parameters.
+fn configure<S, AUX, M0, M1, D>(
+    mut ebyte: Ebyte<S, AUX, M0, M1, D, ebyte_e32::mode::Normal>,
+    parameters: &arguments::Parameters,
+) -> anyhow::Result<()>
+where
+    S: serial::Read<u8> + serial::Write<u8>,
+    <S as serial::Read<u8>>::Error: Debug,
+    <S as serial::Write<u8>>::Error: Debug,
+    AUX: InputPin,
+    M0: OutputPin,
+    M1: OutputPin,
+    D: delay::DelayMs<u32>,
+{
+    println!("Loading existing parameters");
+    let old_params = ebyte
+        .parameters()
+        .expect("Failed to read existing parameters");
+    println!("Loaded parameters: {old_params:#?}");
+
+    // Create Ebyte parameters from argument parameters.
+    let new_params = ebyte_e32::Parameters::from(parameters);
+
+    if new_params == old_params {
+        println!("Leaving parameters unchanged");
+    } else {
+        println!(
+            "Updating parameters (persistence: {:?})",
+            parameters.persistence
+        );
+        ebyte
+            .set_parameters(&new_params, parameters.persistence)
+            .expect("Failed to set new parameters");
+
+        // Check if it worked.
+        let current_params = ebyte
+            .parameters()
+            .expect("Failed to read current parameters");
+        if current_params != new_params {
+            eprintln!("Error: parameters unchanged: {current_params:#?}");
+        }
+    }
+    Ok(())
 }

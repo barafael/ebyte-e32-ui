@@ -2,14 +2,8 @@
 
 use clap::{Parser, ValueHint};
 use ebyte_e32::parameters::{
-    air_baudrate::AirBaudRate,
-    baudrate::BaudRate,
-    option::{
-        fec_mode::ForwardErrorCorrectionMode, io_drive_mode::IoDriveMode,
-        transmission_power::TransmissionPower, wakeup_time::WakeupTime, TransmissionMode,
-    },
-    uart_parity::Parity,
-    Persistence,
+    AirBaudRate, BaudRate, ForwardErrorCorrectionMode, IoDriveMode, Parity, Persistence,
+    TransmissionMode, TransmissionPower, WakeupTime,
 };
 use std::path::PathBuf;
 
@@ -18,6 +12,12 @@ use std::path::PathBuf;
 pub enum Mode {
     /// Read Ebyte module data and print to stdout.
     ReadModelData,
+
+    /// Read Ebyte module parameters and print to stdout.
+    ReadParameters,
+
+    /// Write Ebyte module parameters.
+    Configure(Parameters),
 
     /// Listen for incoming data on the Ebyte module.
     Listen,
@@ -32,12 +32,15 @@ pub enum Mode {
 pub struct Args {
     /// Configuration file.
     #[clap(long, parse(from_os_str), default_value = "Config.toml", value_hint = ValueHint::FilePath)]
-    pub config_file: PathBuf,
+    pub config: PathBuf,
 
     /// Application mode.
     #[clap(subcommand)]
     pub mode: Mode,
+}
 
+#[derive(Clone, Debug, PartialEq, Eq, Parser)]
+pub struct Parameters {
     /// Module Address (16 Bit).
     #[clap(short, long, required = true)]
     pub address: u16,
@@ -83,8 +86,8 @@ pub struct Args {
     pub transmission_power: TransmissionPower,
 }
 
-impl From<&Args> for ebyte_e32::parameters::Parameters {
-    fn from(params: &Args) -> Self {
+impl From<&Parameters> for ebyte_e32::Parameters {
+    fn from(params: &Parameters) -> Self {
         Self {
             address: params.address,
             channel: params.channel,
